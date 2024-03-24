@@ -1,14 +1,11 @@
-# <em>z-xr</em>
- View 3D objects in XR environment. Useful for quick view of ZBrush exports in VR headsets.<br>
- Live demo: <a href='https://zxr.yesbird.ru'>zxr.yesbird.ru</a>
+# <em>Mol-xr</em>
+ Molecules viewer in XR environment.<br>
+ Live demo: <a href='https://molxr.yesbird.ru'>molxr.yesbird.ru</a>
 
 ### <em>Usage</em><br>
-
-  Edit file <b>zxr.js</b> to point to your model:
+  Edit file <b>molxr.js</b> to point to your model:
   ```
-  11: const OBJ_PATH = 'data/models/spiral/spiral.obj';
-  12: const TEX_PATH = 'data/models/spiral/spiral.bmp';
-  13: const NOR_PATH = 'data/models/spiral/spiral_nm.bmp';
+  11: const OBJ_PATH = 'data/models/pdb/aspirin.pdb';
   ```
   Install node: <a href='https://nodejs.org/en/download'>nodejs.org/en/download</a> 
 
@@ -39,7 +36,6 @@
   http://localhost:3000
   ```
   <img src="https://github.com/syanenko/zxr/assets/6688301/e265acc3-742b-4d91-9cf0-eb0b1c8df5ba" width='30'/> enter XR mode by clicking cube icon.<br>
-  
-  Now you can export model from ZBrush on PC and view it in headset's browser just by refreshing it.<br>
+   
   
   Contact: [LinkedIn](https://www.linkedin.com/in/sergey-yanenko-57b21a96/).
