@@ -32,7 +32,7 @@ let model, video;
 
 // GUI
 const params = {
-  scale: 1.5,
+  scale: 2.0,
   x:     0,
   y:     0,
   z:     0,
@@ -69,8 +69,8 @@ function init() {
   scene.add( root );
 
   // Camera
-  camera = new THREE.PerspectiveCamera( 85, window.innerWidth / window.innerHeight, 1, 5000 );
-  camera.position.z = 50;
+  camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 5000 );
+  camera.position.z = 1000;
   scene.add( camera );
 
   video = document.getElementById( 'video' );
@@ -146,39 +146,18 @@ export function loadModel(args)
   params.anz ? params.switch_anz():0;
 
   // Cleanup scene
-  const curModel = scene.getObjectByName('model');
-  if (typeof curModel !== "undefined") {
-    curModel.geometry.dispose();
-    curModel.material.dispose();
-    scene.remove( curModel );
+  const m = scene.getObjectByName('model');
+  if (typeof m !== "undefined") {
+    m.geometry.dispose();
+    m.material.dispose();
+    scene.remove( m );
     renderer.renderLists.dispose();
   }
-
-  let url;
-  if(args.model)
-  {
-    model = args.model;
-    url =  model['model'];
-    // TODO: Remove below
-    var objPath = model['model'];
-    var texPath = model['texture'];
-    var norPath = model['normals']
-  } else {
-    console.log('Error: no model in function argumets');
-    return;
-  }
-  
-  // Material 
-  const material = new THREE.MeshPhongMaterial( {
-    specular: 0x222222,
-    shininess: 35,
-  } );
-  material.side = THREE.DoubleSide;
-  
+ 
   // Geometry
   const offset = new THREE.Vector3();
   loader = new PDBLoader();
-	loader.load( url, function ( pdb ) {
+	loader.load( args.model['model'], function ( pdb ) {
     const geometryAtoms = pdb.geometryAtoms;
     const geometryBonds = pdb.geometryBonds;
     const json = pdb.json;
@@ -210,8 +189,21 @@ export function loadModel(args)
       color.g = colors.getY( i );
       color.b = colors.getZ( i );
 
-      const material = new THREE.MeshPhongMaterial( { color: color,  transparent: true, opacity: 1 } );
-
+      const material = new THREE.MeshPhongMaterial({
+        color: color,
+        transparent: true,
+        opacity: 1
+      });
+/*
+      const material = new THREE.MeshPhysicalMaterial( {
+        color: color,
+        metalness: 0.7,
+        roughness: 0.1,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.03,
+        opacity: 0.1
+      });
+*/
       const object = new THREE.Mesh( sphereGeometry, material );
       object.position.copy( position );
       object.position.multiplyScalar( 75 );
@@ -258,7 +250,7 @@ export function loadModel(args)
       root.add( object );
     }
 
-    model = root;
+    model = root; // TODO: Optimize it
     // Model limits
     var bb = new THREE.Box3().setFromObject(model);
     let width  = bb.max.x - bb.min.x;
@@ -286,41 +278,6 @@ export function loadModel(args)
     model.name='model';
     params.switch_any(); // Turntable by default
   });
-
-/*
-  loader.load( objPath, function ( object ) {
-    const geometry = object.children[0].geometry;
-    model = new THREE.Mesh( geometry, material );
-
-    var bb = new THREE.Box3().setFromObject(model);
-    let width  = bb.max.x - bb.min.x;
-    let height = bb.max.y - bb.min.y; 
-    let depth  = bb.max.z - bb.min.z;
-    let maxSide = Math.floor(Math.max(width, height, depth));
-    model.position.copy(new THREE.Vector3( 0, 0, -maxSide * 1.5));
-
-    // X
-    gui.children[1]._min = -maxSide * 2;
-    gui.children[1]._max =  maxSide * 2;
-    gui.children[1].initialValue = 0;
-
-    // Y
-    gui.children[2]._min = -maxSide * 2;
-    gui.children[2]._max =  maxSide * 2;
-    gui.children[2].initialValue = 0;
-
-    // Z (depth)
-    gui.children[3]._min = model.position.z * 3;
-    gui.children[3]._max = 0;
-    gui.children[3].initialValue = model.position.z;
-    gui.reset();
-
-    model.name='model';
-    scene.add( model );
-  
-    params.switch_any(); // Turntable by default
-  });
-*/
 }
 window.loadModel = loadModel;
 
