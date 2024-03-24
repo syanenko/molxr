@@ -1,7 +1,9 @@
 // TODO
 // -- Fix camera changes on VR mode
 import * as THREE from './three/three.module.js';
-import { OBJLoader } from './three/jsm/loaders/OBJLoader.js';
+import { PDBLoader } from './three/jsm/loaders/PDBLoader.js';
+import { CSS2DRenderer, CSS2DObject } from './three/jsm/renderers/CSS2DRenderer.js';
+
 import { VRButtonIcon } from './three/jsm/webxr/VRButtonIcon.js';
 import { InteractiveGroup } from './three/jsm/interactive/InteractiveGroup.js';
 import { HTMLMesh } from './three/jsm/interactive/HTMLMesh.js';
@@ -9,17 +11,12 @@ import { GUI } from './three/jsm/libs/lil-gui.esm.min.js';
 import { XRControllerModelFactory } from './three/jsm/webxr/XRControllerModelFactory.js';
 
 // Model to load
-const OBJ_PATH = 'data/models/venus/venus.obj';
-const TEX_PATH = '';
-const NOR_PATH = '';
-/* 
-const OBJ_PATH = 'data/models/spiral/spiral.obj';
-const TEX_PATH = 'data/models/spiral/spiral.bmp';
-const NOR_PATH = 'data/models/spiral/spiral_nm.bmp';
-*/
+const MODEL_PATH = 'data/models/pdb/aspirin.pdb';
 
 let container, loader;
-let camera, scene, renderer;
+let camera, scene;
+let renderer, labelRenderer;
+let root;
 let textureLoader;
 let gui, gui_mesh;
 let param_changed = false;
@@ -35,7 +32,7 @@ let model, video;
 
 // GUI
 const params = {
-  scale: 1.0,
+  scale: 1.5,
   x:     0,
   y:     0,
   z:     0,
@@ -68,10 +65,12 @@ animate();
 function init() {
   // Scene
   scene = new THREE.Scene();
+  root = new THREE.Group();
+  scene.add( root );
 
   // Camera
-  camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 1100 );
-  camera.position.set( 0, 0, 0 );
+  camera = new THREE.PerspectiveCamera( 85, window.innerWidth / window.innerHeight, 1, 5000 );
+  camera.position.z = 50;
   scene.add( camera );
 
   video = document.getElementById( 'video' );
@@ -86,9 +85,16 @@ function init() {
   renderer.xr.enabled = true;
   renderer.xr.setReferenceSpaceType( 'local' );
   renderer.xr.setFramebufferScaleFactor( 4.0 );
-
   container = document.getElementById("container");
   container.appendChild( renderer.domElement );
+
+  // Label renderer
+  labelRenderer = new CSS2DRenderer();
+  labelRenderer.setSize( window.innerWidth, window.innerHeight );
+  labelRenderer.domElement.style.position = 'absolute';
+  labelRenderer.domElement.style.top = '0px';
+  labelRenderer.domElement.style.pointerEvents = 'none';
+  document.getElementById( 'container' ).appendChild( labelRenderer.domElement );
 
   // Loader
   textureLoader = new THREE.TextureLoader();
@@ -98,7 +104,7 @@ function init() {
 
   // Default model on startup
   loadModel({test:false,
-             model: {model: OBJ_PATH, texture: TEX_PATH, normals: NOR_PATH }});
+             model: {model: MODEL_PATH}});
     
   document.getElementById("video_button").onclick = switchVideo;
   document.body.appendChild( VRButtonIcon.createButton( renderer ) );
@@ -148,21 +154,12 @@ export function loadModel(args)
     renderer.renderLists.dispose();
   }
 
-  // Test object
-  if(args.test)
-  {
-    const geometry = new THREE.CylinderGeometry( 0.5, 0.5, 1.5, 64, 1);
-    const mat = new THREE.MeshPhongMaterial( {color: 0x00fa00, transparent:false, side: THREE.DoubleSide } );
-    model = new THREE.Mesh(geometry, mat);
-    model.translateZ(-0.4);
-    model.name='model';
-    scene.add(model);
-    return;
-  }
-
+  let url;
   if(args.model)
   {
     model = args.model;
+    url =  model['model'];
+    // TODO: Remove below
     var objPath = model['model'];
     var texPath = model['texture'];
     var norPath = model['normals']
@@ -170,34 +167,127 @@ export function loadModel(args)
     console.log('Error: no model in function argumets');
     return;
   }
-   
-  let diffuseMap = '';
-  let color = 0xffd47f;
-  if (texPath !== '') {
-    diffuseMap = textureLoader.load( texPath );
-    diffuseMap.colorSpace = THREE.SRGBColorSpace;
-    color = 0xffffff;
-  }
-
-  let normalMap = '';
-  if (norPath !== '') {
-    normalMap = textureLoader.load( norPath );
-  }
   
-  // Material
+  // Material 
   const material = new THREE.MeshPhongMaterial( {
-    color: color,
     specular: 0x222222,
     shininess: 35,
-    map: diffuseMap,
-    normalMap: normalMap,
-    normalMapType: THREE.TangentSpaceNormalMap,
-    normalScale: new THREE.Vector2( 2, 2 )
   } );
   material.side = THREE.DoubleSide;
   
   // Geometry
-  loader = new OBJLoader();
+  const offset = new THREE.Vector3();
+  loader = new PDBLoader();
+	loader.load( url, function ( pdb ) {
+    const geometryAtoms = pdb.geometryAtoms;
+    const geometryBonds = pdb.geometryBonds;
+    const json = pdb.json;
+
+    const boxGeometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const cylGeometry = new THREE.CylinderGeometry( 1, 1, 1 );
+    
+    const sphereGeometry = new THREE.IcosahedronGeometry( 1, 3 );
+
+    geometryAtoms.computeBoundingBox();
+    geometryAtoms.boundingBox.getCenter( offset ).negate();
+
+    geometryAtoms.translate( offset.x, offset.y, offset.z );
+    geometryBonds.translate( offset.x, offset.y, offset.z );
+
+    let positions = geometryAtoms.getAttribute( 'position' );
+    const colors = geometryAtoms.getAttribute( 'color' );
+
+    const position = new THREE.Vector3();
+    const color = new THREE.Color();
+
+    for ( let i = 0; i < positions.count; i ++ ) {
+
+      position.x = positions.getX( i );
+      position.y = positions.getY( i );
+      position.z = positions.getZ( i );
+
+      color.r = colors.getX( i );
+      color.g = colors.getY( i );
+      color.b = colors.getZ( i );
+
+      const material = new THREE.MeshPhongMaterial( { color: color,  transparent: true, opacity: 1 } );
+
+      const object = new THREE.Mesh( sphereGeometry, material );
+      object.position.copy( position );
+      object.position.multiplyScalar( 75 );
+      object.scale.multiplyScalar( 25 );
+      root.add( object );
+      
+      const atom = json.atoms[ i ];
+
+      const text = document.createElement( 'div' );
+      text.className = 'label';
+      text.style.color = 'rgb(' + atom[ 3 ][ 0 ] + ',' + atom[ 3 ][ 1 ] + ',' + atom[ 3 ][ 2 ] + ')';
+      text.textContent = atom[ 4 ];
+
+      const label = new CSS2DObject( text );
+      label.position.copy( object.position );
+      root.add( label );
+    }
+
+    positions = geometryBonds.getAttribute( 'position' );
+    const start = new THREE.Vector3();
+    const end = new THREE.Vector3();
+
+    for ( let i = 0; i < positions.count; i += 2 ) {
+
+      start.x = positions.getX( i );
+      start.y = positions.getY( i );
+      start.z = positions.getZ( i );
+
+      end.x = positions.getX( i + 1 );
+      end.y = positions.getY( i + 1 );
+      end.z = positions.getZ( i + 1 );
+
+      start.multiplyScalar( 75 );
+      end.multiplyScalar( 75 );
+
+      const object = new THREE.Mesh( boxGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+      // const object = new THREE.Mesh( cylGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+      // object.rotation.z = Math.PI / 2;
+      object.position.copy( start );
+      object.position.lerp( end, 0.5 );
+      //object.scale.set( 5, start.distanceTo( end ), 5 );
+      object.scale.set( 5, 5, start.distanceTo( end ) );
+      object.lookAt( end );
+      root.add( object );
+    }
+
+    model = root;
+    // Model limits
+    var bb = new THREE.Box3().setFromObject(model);
+    let width  = bb.max.x - bb.min.x;
+    let height = bb.max.y - bb.min.y; 
+    let depth  = bb.max.z - bb.min.z;
+    let maxSide = Math.floor(Math.max(width, height, depth));
+    model.position.copy(new THREE.Vector3( 0, 0, -maxSide * 1.5));
+
+    // X
+    gui.children[1]._min = -maxSide * 2;
+    gui.children[1]._max =  maxSide * 2;
+    gui.children[1].initialValue = 0;
+
+    // Y
+    gui.children[2]._min = -maxSide * 2;
+    gui.children[2]._max =  maxSide * 2;
+    gui.children[2].initialValue = 100;
+
+    // Z (depth)
+    gui.children[3]._min = model.position.z * 3;
+    gui.children[3]._max = 0;
+    gui.children[3].initialValue = model.position.z;
+    gui.reset();
+
+    model.name='model';
+    params.switch_any(); // Turntable by default
+  });
+
+/*
   loader.load( objPath, function ( object ) {
     const geometry = object.children[0].geometry;
     model = new THREE.Mesh( geometry, material );
@@ -230,6 +320,7 @@ export function loadModel(args)
   
     params.switch_any(); // Turntable by default
   });
+*/
 }
 window.loadModel = loadModel;
 
@@ -402,24 +493,15 @@ function onReset()
 renderer.xr.addEventListener( 'sessionstart', function ( event ) {
   renderer.setClearColor(new THREE.Color(0x000), 1);
   gui_mesh.visible = true;
-  
   if(!video.paused) {
     switchVideo();
   }
-  // console.log(camera);
 });
 
 // XR end
 renderer.xr.addEventListener( 'sessionend', function ( event ) {
   renderer.setClearColor(new THREE.Color(0x000), 0);
-  /*
-  // onWindowResize();
-  camera.near = .1;
-  camera.far = 1100;
-  camera.position.set( 0, 0, 0 );
-  camera.updateProjectionMatrix();
-  */
-  // console.log(camera);
+  onWindowResize();
   gui_mesh.visible = false;
 });
 
@@ -452,4 +534,5 @@ function render() {
   }
 
   renderer.render( scene, camera );
+  labelRenderer.render( scene, camera );
 }
