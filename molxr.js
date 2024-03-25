@@ -146,13 +146,14 @@ export function loadModel(args)
   params.anz ? params.switch_anz():0;
 
   // Cleanup scene
+  /* DEBUG !
   const m = scene.getObjectByName('model');
   if (typeof m !== "undefined") {
     m.geometry.dispose();
     m.material.dispose();
     scene.remove( m );
     renderer.renderLists.dispose();
-  }
+  }*/
  
   // Geometry
   const offset = new THREE.Vector3();
@@ -189,21 +190,13 @@ export function loadModel(args)
       color.g = colors.getY( i );
       color.b = colors.getZ( i );
 
-      const material = new THREE.MeshPhongMaterial({
-        color: color,
-        transparent: true,
-        opacity: 1
-      });
-/*
-      const material = new THREE.MeshPhysicalMaterial( {
-        color: color,
-        metalness: 0.7,
-        roughness: 0.1,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.03,
-        opacity: 0.1
-      });
-*/
+      let material = new THREE.MeshStandardMaterial( {
+          color: color,
+          metalness: 0.65,
+          roughness: 0,
+          envMapIntensity: 1.0
+        } );
+
       const object = new THREE.Mesh( sphereGeometry, material );
       object.position.copy( position );
       object.position.multiplyScalar( 75 );
@@ -239,12 +232,16 @@ export function loadModel(args)
       start.multiplyScalar( 75 );
       end.multiplyScalar( 75 );
 
-      const object = new THREE.Mesh( boxGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
+      let bond_mat = new THREE.MeshStandardMaterial( {
+          color: 0x00AAAA,
+          metalness: 0.65,
+          roughness: 0,
+          envMapIntensity: 1.0
+        } );
+      const object = new THREE.Mesh( boxGeometry, bond_mat );
       // const object = new THREE.Mesh( cylGeometry, new THREE.MeshPhongMaterial( { color: 0xffffff } ) );
-      // object.rotation.z = Math.PI / 2;
       object.position.copy( start );
       object.position.lerp( end, 0.5 );
-      //object.scale.set( 5, start.distanceTo( end ), 5 );
       object.scale.set( 5, 5, start.distanceTo( end ) );
       object.lookAt( end );
       root.add( object );

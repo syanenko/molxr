@@ -88,11 +88,9 @@
     <!-- Upload model -->
     <div id="form_upload">
       <form encType="multipart/form-data" style="text-align:left">
-          <h3>Upload a model</h3>
-        Geometry&nbsp;<input type="file" name="model"   accept=".obj"/><br/>
-        Texture&nbsp;&nbsp;<input type="file" name="texture" accept=".bmp,.png,.jpeg,.jpg"/><br/>
-        Normals&nbsp;&nbsp;<input type="file" name="normals" accept=".bmp,.png,.jpeg,.jpg"/><br/><br/>
-        <input type="submit"  value="Upload" style="margin-left:80px"/>&nbsp;&nbsp;&nbsp;&nbsp;
+          <h3>Upload a PDB model</h3>
+        <input type="file" name="model" accept=".pdb"/><br/><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit"  value="Upload" style="margin-left:80px"/>&nbsp;&nbsp;
         <input type="button"  value="Cancel" onclick="parentElement.parentElement.style.visibility = 'hidden'"/>
       </form>
     </duv>
@@ -109,24 +107,25 @@
         var formData = new FormData();
 
         // Get the selected file
-        var model   = form.querySelector('[name="model"]'  ).files[0];
-        var texture = form.querySelector('[name="texture"]').files[0];
-        var normals = form.querySelector('[name="normals"]').files[0];
+        var model   = form.querySelector('[name="model"]').files[0];
+        //var texture = form.querySelector('[name="texture"]').files[0];
+        //var normals = form.querySelector('[name="normals"]').files[0];
 
         // Add the file to the FormData object
-        formData.append('model',   model);
-        formData.append('texture', texture);
-        formData.append('normals', normals);
+        formData.append('model', model);
+        //formData.append('texture', texture);
+        //formData.append('normals', normals);
 
         // Display model name
         var model_name = document.getElementById('model_name'); 
-        model_name.innerHTML ='[' + model.name + ']';
+        // DEBUG !  
+        //model_name.innerHTML ='[' + model.name + ']';
    
         // Create an XMLHttpRequest object
         var xhr = new XMLHttpRequest();
 
         // Set the request url - check it before publishing
-        xhr.open('POST', 'http://localhost:8081/upload.php');
+        xhr.open('POST', 'http://localhost:8082/upload.php');
         // xhr.open('POST', 'https:///molxr.yesbird.ru/upload.php');
 
         // Set the request as asynchronous
