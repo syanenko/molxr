@@ -283,6 +283,9 @@ export function loadModel(name)
     gui.children[4]._max = 0;
     gui.children[4].initialValue = model.position.z;
 
+    var model_name = document.getElementById('model_name');
+    model_name.innerHTML ='[' + name + ']';
+
     // gui.reset(); // TODO: Reset logic
     params.switch_any(); // Turntable by default
   });

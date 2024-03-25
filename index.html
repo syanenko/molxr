@@ -42,9 +42,6 @@
     <div id="model_name" style='z-index:2'>[Demo model]</div>
     <!-- Render -->
     <div id="container" style='height: 100vh; width: 100%; position: absolute; z-index:1'></div>
-    <!-- Video
-    <video id="video" style='transform: translate(-50%, -50%);  position: absolute;  top: 50%; left: 50%; display:none; object-fit: fill;' playsinline></video>
-    -->
     <video id="video" style='height:100vh; width:100%; position:absolute; z-index:0; visibility:hidden' playsinline></video>
     <input id="video_button" type="image" src="./data/icons/outline_videocam_white_48dp.png" style='z-index:2'/>
     <script>
@@ -111,18 +108,13 @@
 
         // Get the selected file
         var model   = form.querySelector('[name="model"]').files[0];
-        //var texture = form.querySelector('[name="texture"]').files[0];
-        //var normals = form.querySelector('[name="normals"]').files[0];
 
         // Add the file to the FormData object
         formData.append('model', model);
-        //formData.append('texture', texture);
-        //formData.append('normals', normals);
 
         // Display model name
         var model_name = document.getElementById('model_name'); 
-        // DEBUG !  
-        //model_name.innerHTML ='[' + model.name + ']';
+        model_name.innerHTML ='[' + model.name + ']';
    
         // Create an XMLHttpRequest object
         var xhr = new XMLHttpRequest();
