@@ -104,7 +104,7 @@ function init() {
   initController();
 
   // Default model on startup
-  loadModel({model: {model: MODEL_PATH}});
+  loadModel(MODEL_PATH);
     
   document.getElementById("video_button").onclick = switchVideo;
   document.body.appendChild( VRButtonIcon.createButton( renderer ) );
@@ -138,8 +138,9 @@ function switchVideo()
 }
 
 // Load model
-export function loadModel(args)
+export function loadModel(url)
 {
+  console.log(url);
   // Stop animation
   params.anx ? params.switch_anx():0;
   params.any ? params.switch_any():0;
@@ -154,7 +155,7 @@ export function loadModel(args)
   // Geometry
   const offset = new THREE.Vector3();
   loader = new PDBLoader();
-	loader.load( args.model['model'], function ( pdb ) {
+	loader.load( url, function ( pdb ) {
     const geometryAtoms = pdb.geometryAtoms;
     const geometryBonds = pdb.geometryBonds;
     const json = pdb.json;
