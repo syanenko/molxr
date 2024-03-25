@@ -11,7 +11,8 @@ import { GUI } from './three/jsm/libs/lil-gui.esm.min.js';
 import { XRControllerModelFactory } from './three/jsm/webxr/XRControllerModelFactory.js';
 
 // Model to load
-const MODEL_PATH = 'data/models/pdb/aspirin.pdb';
+// const MODEL_PATH = 'data/models/pdb/aspirin.pdb';
+const MODEL_PATH = 'data/models/pdb/ybco.pdb';
 
 let container, loader;
 let camera, scene;
@@ -32,7 +33,7 @@ let model, video;
 
 // GUI
 const params = {
-  scale: 2.0,
+  scale: 1.5,
   x:     0,
   y:     0,
   z:     0,
@@ -103,8 +104,7 @@ function init() {
   initController();
 
   // Default model on startup
-  loadModel({test:false,
-             model: {model: MODEL_PATH}});
+  loadModel({model: {model: MODEL_PATH}});
     
   document.getElementById("video_button").onclick = switchVideo;
   document.body.appendChild( VRButtonIcon.createButton( renderer ) );
@@ -146,15 +146,11 @@ export function loadModel(args)
   params.anz ? params.switch_anz():0;
 
   // Cleanup scene
-  /* DEBUG !
-  const m = scene.getObjectByName('model');
-  if (typeof m !== "undefined") {
-    m.geometry.dispose();
-    m.material.dispose();
-    scene.remove( m );
-    renderer.renderLists.dispose();
-  }*/
- 
+  while ( root.children.length > 0 ) {
+    const object = root.children[ 0 ];
+    object.parent.remove( object );
+  }
+
   // Geometry
   const offset = new THREE.Vector3();
   loader = new PDBLoader();
@@ -189,13 +185,23 @@ export function loadModel(args)
       color.r = colors.getX( i );
       color.g = colors.getY( i );
       color.b = colors.getZ( i );
-
+/*
       let material = new THREE.MeshStandardMaterial( {
           color: color,
           metalness: 0.65,
           roughness: 0,
           envMapIntensity: 1.0
         } );
+*/
+      let material = new THREE.MeshPhysicalMaterial( {
+        color: color,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+        metalness: 0.65
+//      roughness: 0.5,
+//      normalMap: normalMap3,
+//      normalScale: new THREE.Vector2( 0.15, 0.15 )
+      });
 
       const object = new THREE.Mesh( sphereGeometry, material );
       object.position.copy( position );
@@ -247,7 +253,7 @@ export function loadModel(args)
       root.add( object );
     }
 
-    model = root; // TODO: Optimize it
+    model = root; // TODO: Optimize it (?)
     // Model limits
     var bb = new THREE.Box3().setFromObject(model);
     let width  = bb.max.x - bb.min.x;
@@ -272,7 +278,6 @@ export function loadModel(args)
     gui.children[3].initialValue = model.position.z;
     gui.reset();
 
-    model.name='model';
     params.switch_any(); // Turntable by default
   });
 }

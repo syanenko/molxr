@@ -11,7 +11,7 @@
       gtag('config', 'G-4BTQWYDYSB');
     </script>
 
-    <title>MolXR</title>
+    <title>Mol-XR</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <meta http-equiv="Pragma" content="no-cache">
@@ -85,12 +85,15 @@
     </script>
     <script type="module" src="molxr.js"></script>
 
-    <!-- Upload model -->
+    <!-- Upload model 
+       onchange="form.submit()"
+       onchange="javascript:this.form.submit();"
+    -->
     <div id="form_upload">
       <form encType="multipart/form-data" style="text-align:left">
           <h3>Upload a PDB model</h3>
         <input type="file" name="model" accept=".pdb"/><br/><br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit"  value="Upload" style="margin-left:80px"/>&nbsp;&nbsp;
+        <input type="submit" value="Upload" style="margin-left:140px"/>&nbsp;&nbsp;
         <input type="button"  value="Cancel" onclick="parentElement.parentElement.style.visibility = 'hidden'"/>
       </form>
     </duv>
