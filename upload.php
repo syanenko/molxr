@@ -12,5 +12,5 @@ if(!is_dir($UPLOADS_DIR))
 $model_path = $UPLOADS_DIR . $_FILES['model']['name'];
 move_uploaded_file($_FILES['model']["tmp_name"], $model_path);
 
-echo json_encode($model_path);
+echo json_encode($_FILES['model']['name']);
 ?>

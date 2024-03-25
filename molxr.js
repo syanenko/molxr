@@ -10,10 +10,14 @@ import { HTMLMesh } from './three/jsm/interactive/HTMLMesh.js';
 import { GUI } from './three/jsm/libs/lil-gui.esm.min.js';
 import { XRControllerModelFactory } from './three/jsm/webxr/XRControllerModelFactory.js';
 
-// Model to load
-// const MODEL_PATH = 'data/models/pdb/aspirin.pdb';
-const MODEL_PATH = 'data/models/pdb/ybco.pdb';
-
+// Model to load on start
+const MODELS_PATH   = 'data/models/pdb/';
+const DEFAULT_MODEL = 'ybco.pdb';
+const modelsList = [ 'Al2O3.pdb', 'aspirin.pdb', 'buckyball.pdb', 'caf2.pdb',
+                     'caffeine.pdb', 'cholesterol.pdb', 'cocaine.pdb', 'cu.pdb',
+                     'cubane.pdb', 'diamond.pdb', 'ethanol.pdb', 'glucose.pdb',
+                     'graphite.pdb', 'lsd.pdb', 'lycopene.pdb', 'nacl.pdb',
+                     'nicotine.pdb', 'ybco.pdb' ];
 let container, loader;
 let camera, scene;
 let renderer, labelRenderer;
@@ -33,6 +37,7 @@ let model, video;
 
 // GUI
 const params = {
+  model: DEFAULT_MODEL,
   scale: 1.5,
   x:     0,
   y:     0,
@@ -45,20 +50,21 @@ const params = {
   anz: false,
   switch_anx: function() {params.anx = !params.anx;
                           let color = params.anx ? "#00ff00" : "#ff9127";
-                          gui.controllers[10].$name.style.color = color;
+                          gui.controllers[11].$name.style.color = color;
                           param_changed = true;},
 
   switch_any: function() {params.any = !params.any;
                           let color = params.any ? "#00ff00" : "#ff9127";
-                          gui.controllers[11].$name.style.color = color;
+                          gui.controllers[12].$name.style.color = color;
                           param_changed = true;},
 
   switch_anz: function() {params.anz = !params.anz;
                           let color = params.anz ? "#00ff00" : "#ff9127";
-                          gui.controllers[12].$name.style.color = color;
+                          gui.controllers[13].$name.style.color = color;
                           param_changed = true;},
   speed: -0.007 }
 
+// Start
 init();
 animate();
 
@@ -102,9 +108,6 @@ function init() {
 
   initGUI();  
   initController();
-
-  // Default model on startup
-  loadModel(MODEL_PATH);
     
   document.getElementById("video_button").onclick = switchVideo;
   document.body.appendChild( VRButtonIcon.createButton( renderer ) );
@@ -138,9 +141,11 @@ function switchVideo()
 }
 
 // Load model
-export function loadModel(url)
+export function loadModel(name)
 {
+  let url = MODELS_PATH + name;
   console.log(url);
+
   // Stop animation
   params.anx ? params.switch_anx():0;
   params.any ? params.switch_any():0;
@@ -264,21 +269,21 @@ export function loadModel(url)
     model.position.copy(new THREE.Vector3( 0, 0, -maxSide * 1.5));
 
     // X
-    gui.children[1]._min = -maxSide * 2;
-    gui.children[1]._max =  maxSide * 2;
-    gui.children[1].initialValue = 0;
-
-    // Y
     gui.children[2]._min = -maxSide * 2;
     gui.children[2]._max =  maxSide * 2;
-    gui.children[2].initialValue = 100;
+    gui.children[2].initialValue = 0;
+
+    // Y
+    gui.children[3]._min = -maxSide * 2;
+    gui.children[3]._max =  maxSide * 2;
+    gui.children[3].initialValue = 100;
 
     // Z (depth)
-    gui.children[3]._min = model.position.z * 3;
-    gui.children[3]._max = 0;
-    gui.children[3].initialValue = model.position.z;
-    gui.reset();
+    gui.children[4]._min = model.position.z * 3;
+    gui.children[4]._max = 0;
+    gui.children[4].initialValue = model.position.z;
 
+    // gui.reset(); // TODO: Reset logic
     params.switch_any(); // Turntable by default
   });
 }
@@ -309,6 +314,7 @@ function initGUI()
 {
   // GUI
   gui = new GUI( {width: 300, title:"Settings", closeFolders:true} ); // Check 'closeFolders' - not working
+  gui.add( params, 'model' ).options( modelsList ).name( 'Model' ).onChange(loadModel);
   gui.add( params, 'scale', 0.1, 5.0, 0.01 ).name( 'Scale' ).onChange(onScale);
   gui.add( params, 'x', -300, 300, 0.01 ).name( 'X' ).onChange(onX);
   gui.add( params, 'y', -200, 200, 0.01 ).name( 'Y' ).onChange(onY);
@@ -323,7 +329,8 @@ function initGUI()
   gui.add( params, 'switch_any').name( 'Animate Y' );
   gui.add( params, 'switch_anz').name( 'Animate Z' );
   gui.add( params, 'speed', -0.02, 0.02, 0.001 ).name( 'Speed' ).onChange( ()=>{param_changed = true;} );
-  gui.add( gui.reset(), 'reset' ).name( 'Reset' ).onChange(onReset); onReset();
+  gui.add( gui.reset(), 'reset' ).name( 'Reset' ).onChange(onReset);
+  onReset();
 
   const group = new InteractiveGroup( renderer, camera );
   scene.add( group );
@@ -443,10 +450,10 @@ function onRotation()
 
 function onReset()
 {
-  gui.controllers[10].$name.style.color = "#ff9127";
   gui.controllers[11].$name.style.color = "#ff9127";
   gui.controllers[12].$name.style.color = "#ff9127";
-  gui.controllers[14].$name.style.color = "#ff9127";
+  gui.controllers[13].$name.style.color = "#ff9127";
+  gui.controllers[15].$name.style.color = "#ff9127";
 }
 
 // XR start 
