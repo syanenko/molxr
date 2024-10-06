@@ -38,7 +38,7 @@ let model, video;
 // GUI
 const params = {
   model: DEFAULT_MODEL,
-  scale: 1.5,
+  scale: 2.0,
   x:     0,
   y:     0,
   z:     0,
@@ -144,7 +144,6 @@ function switchVideo()
 export function loadModel(name)
 {
   let url = MODELS_PATH + name;
-  console.log(url);
 
   // Stop animation
   params.anx ? params.switch_anx():0;
@@ -260,6 +259,7 @@ export function loadModel(name)
     }
 
     model = root; // TODO: Optimize it (?)
+/*
     // Model limits
     var bb = new THREE.Box3().setFromObject(model);
     let width  = bb.max.x - bb.min.x;
@@ -280,14 +280,14 @@ export function loadModel(name)
 
     // Z (depth)
     gui.children[4]._min = model.position.z * 3;
-    gui.children[4]._max = 0;
+    gui.children[4]._max = 100;
     gui.children[4].initialValue = model.position.z;
-
+*/
     var model_name = document.getElementById('model_name');
     model_name.innerHTML ='[' + name + ']';
 
-    // gui.reset(); // TODO: Reset logic
-    params.switch_any(); // Turntable by default
+    // gui.reset(); // TODO: Reset and init logic
+    // params.switch_any(); // Turntable by default
   });
 }
 window.loadModel = loadModel;
@@ -321,7 +321,7 @@ function initGUI()
   gui.add( params, 'scale', 0.1, 5.0, 0.01 ).name( 'Scale' ).onChange(onScale);
   gui.add( params, 'x', -300, 300, 0.01 ).name( 'X' ).onChange(onX);
   gui.add( params, 'y', -200, 200, 0.01 ).name( 'Y' ).onChange(onY);
-  gui.add( params, 'z', -1000, 0, 0.01 ).name( 'Z' ).onChange(onZ);
+  gui.add( params, 'z', -1000, 100, 0.01 ).name( 'Z' ).onChange(onZ);
   gui.add( params, 'rx', -Math.PI, Math.PI, 0.01 ).name( 'Rot X' ).onChange( onRotation );
   gui.add( params, 'ry', -Math.PI, Math.PI, 0.01 ).name( 'Rot Y' ).onChange( onRotation );
   gui.add( params, 'rz', -Math.PI, Math.PI, 0.01 ).name( 'Rot Z' ).onChange( onRotation );
@@ -504,5 +504,6 @@ function render() {
   }
 
   renderer.render( scene, camera );
-  labelRenderer.render( scene, camera );
+  // DEBUG !
+  // labelRenderer.render( scene, camera );
 }
