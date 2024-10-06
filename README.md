@@ -1,6 +1,8 @@
 # <em>Mol-xr</em>
  Molecules viewer in XR environment.<br>
+ <!--
  Live demo: <a href='https://molxr.yesbird.ru'>molxr.yesbird.ru</a>
+ -->
 
 ### <em>Usage</em><br>
   Edit file <b>molxr.js</b> to point to your model:
